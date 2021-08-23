@@ -1,0 +1,6 @@
+.settings/
+target/
+.classpath
+.factorypath
+.project
+*.H2O
