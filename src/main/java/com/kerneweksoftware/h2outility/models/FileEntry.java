@@ -2,10 +2,15 @@ package com.kerneweksoftware.h2outility.models;
 
 import lombok.Data;
 
+/**
+ * Top level information of each archived file.
+ * 
+ * Second of six structures.
+ */
 @Data
-public class FileHeader {
+public class FileEntry {
     private int compressionTag;
-    private int directoryNameIndex;
+    private int folderNameIndex;
     private int fileNameIndex;
     private int fileId;
     private int rawSize;
@@ -13,4 +18,6 @@ public class FileHeader {
     private long offset;
     private byte[] checksum;
     private int unknownField;
+    private String name;
+    private byte[] data;
 }

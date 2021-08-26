@@ -6,194 +6,132 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
 import com.github.gcms.blast.BlastInputStream;
 import com.kerneweksoftware.h2outility.models.ArchiveHeader;
-import com.kerneweksoftware.h2outility.models.DirectoryData;
-import com.kerneweksoftware.h2outility.models.DirectoryHeader;
-import com.kerneweksoftware.h2outility.models.FileHeader;
+import com.kerneweksoftware.h2outility.models.FileEntry;
 
 public class H2oUtility 
 {
-    static int UNSIGNED_INT_BYTE_SIZE = 4;
-    static int FLOAT_BYTE_SIZE = 4;
-    static int UNSIGNED_LONG_BYTE_SIZE = 8;
-    static int COMMENT_TERMINATOR = 0x1A;
+    static final int UNSIGNED_INT_BYTE_SIZE = 4;
+    static final int FLOAT_BYTE_SIZE = 4;
+    static final int UNSIGNED_LONG_BYTE_SIZE = 8;
+    static final int COMMENT_TERMINATOR = 0x1A;
+    static final int STRING_ARRAY_DELIMITER = 0x00;
+    static final int UNSIGNED_INT_MASK = 0xFF;
+    static final int UNSIGNED_LONG_MASK = 0xFFFFFFFF;
 
     static int pointer = 0;
 
     public static void main(String[] args) throws IOException, DataFormatException {
-        byte[] archive = Files.readAllBytes(Paths.get("C:\\Users\\etste\\Documents\\Projects\\h2o-utility\\archives\\Models.H2O"));
+        byte[] rawArchive = Files.readAllBytes(Paths.get("C:\\Users\\etste\\Documents\\Projects\\h2o-utility\\archives\\Meshes.H2O"));
+        ByteBuffer archive = ByteBuffer.wrap(rawArchive);
+        archive.order(ByteOrder.LITTLE_ENDIAN);
 
         ArchiveHeader header = new ArchiveHeader();
-        header.setHeader(getString(archive, pointer + 8));
-        header.setVersion1(getFloat(archive));
+        header.setHeader(getString(archive, archive.position() + 8));
+        header.setVersion1(archive.getFloat());
         header.setComments(getString(archive));
-        header.setVersion2(getUnsignedInt(archive));
-        header.setFileCount(getInt(archive));
-        header.setCompressedSize(getUnsignedLong(archive));
-        header.setRawSize(getUnsignedLong(archive));
+        header.setVersion2(archive.getInt() & UNSIGNED_INT_MASK);
+        header.setFileCount(archive.getInt());
+        header.setCompressedSize(archive.getLong() & UNSIGNED_LONG_MASK);
+        header.setRawSize(archive.getLong() & UNSIGNED_LONG_MASK);
         System.out.println(header.toString());
 
-        FileHeader[] fileHeaders = new FileHeader[header.getFileCount()];
+        FileEntry[] fileEntries = new FileEntry[header.getFileCount()];
         for (int i = 0; i < header.getFileCount(); i++) {
-            FileHeader newHeader = new FileHeader();
-            newHeader.setCompressionTag(getUnsignedInt(archive));
-            newHeader.setDirectoryNameIndex(getInt(archive));
-            newHeader.setFileNameIndex(getInt(archive));
-            newHeader.setFileId(getInt(archive));
-            newHeader.setRawSize(getUnsignedInt(archive));
-            newHeader.setCompressedSize(getUnsignedInt(archive));
-            newHeader.setOffset(getUnsignedLong(archive));
-            newHeader.setChecksum(getBytes(archive, pointer + 4));
-            newHeader.setUnknownField(getInt(archive));
-            fileHeaders[i] = newHeader;
+            FileEntry newHeader = new FileEntry();
+            newHeader.setCompressionTag(archive.getInt() & UNSIGNED_INT_MASK);
+            newHeader.setFolderNameIndex(archive.getInt());
+            newHeader.setFileNameIndex(archive.getInt());
+            newHeader.setFileId(archive.getInt());
+            newHeader.setRawSize(archive.getInt() & UNSIGNED_INT_MASK);
+            newHeader.setCompressedSize(archive.getInt() & UNSIGNED_INT_MASK);
+            newHeader.setOffset(archive.getLong() & UNSIGNED_LONG_MASK);
+            byte[] checksum = new byte[4];
+            archive.get(checksum, 0, 4);
+            newHeader.setChecksum(checksum);
+            newHeader.setUnknownField(archive.getInt());
+            fileEntries[i] = newHeader;
             System.out.println(newHeader.toString());
         }
 
-        DirectoryHeader folderNameDirectory = new DirectoryHeader();
-        folderNameDirectory.setCompressedSize(getInt(archive));
-        folderNameDirectory.setRawSize(getInt(archive));
-        folderNameDirectory.setChecksum(getBytes(archive, pointer + 4));
-        DirectoryData folderNames = new DirectoryData();
-        if (folderNameDirectory.getCompressedSize() == folderNameDirectory.getRawSize()) {
-            folderNames.setCount(getUnsignedInt(archive));
-            folderNames.setSize(getUnsignedInt(archive));
-        } else {
-            byte[] compressed = Arrays.copyOfRange(archive, pointer, pointer + folderNameDirectory.getCompressedSize());
-            byte[] decompressed = decompress(compressed);
+        List<String> folderNames = getNames(archive);
+        System.out.println(folderNames.toString());
 
-            ByteBuffer wrappedBytes = ByteBuffer.wrap(decompressed);
-            wrappedBytes.order(ByteOrder.LITTLE_ENDIAN);
-            folderNames.setCount(wrappedBytes.getInt() & 0xFF);
-            folderNames.setSize(wrappedBytes.getInt() & 0xFF);
+        List<String> fileNames = getNames(archive);
+        System.out.println(fileNames.toString());
 
-            List<String> data = new ArrayList<>();
-            StringBuilder sb = new StringBuilder();
-            while (wrappedBytes.remaining() > 0) {
-                char character = (char) wrappedBytes.getShort();
-                if (character != 0x00) {
-                    sb.append(character);
-                } else {
-                    data.add(sb.toString());
-                    sb = new StringBuilder();
-                }
-            }
-
-            pointer += folderNameDirectory.getRawSize(); // add check to ensure decomp'd array equals this
+        // FOLDER STRUCTURE/MAP
+        int folderCount = archive.getInt();
+        System.out.println("Folder count: " + folderCount);
+        for (int i = 0; i < folderCount; i++) {
+            System.out.println("Parent folder index: " + archive.getInt());
         }
-        System.out.println(folderNameDirectory.toString());
 
-        DirectoryHeader filenameDirectory = new DirectoryHeader();
-        filenameDirectory.setCompressedSize(getInt(archive));
-        filenameDirectory.setRawSize(getInt(archive));
-        filenameDirectory.setChecksum(getBytes(archive, pointer + 4));
-        DirectoryData fileNames = new DirectoryData();
-        if (filenameDirectory.getCompressedSize() == filenameDirectory.getRawSize()) {
-            fileNames.setCount(getUnsignedInt(archive));
-            fileNames.setSize(getUnsignedInt(archive));
-        } else {
-            byte[] compressed = Arrays.copyOfRange(archive, pointer, pointer + filenameDirectory.getCompressedSize());
-            byte[] decompressed = decompress(compressed);
-
-            ByteBuffer wrappedBytes = ByteBuffer.wrap(decompressed);
-            wrappedBytes.order(ByteOrder.LITTLE_ENDIAN);
-            fileNames.setCount(wrappedBytes.getInt() & 0xFF);
-            fileNames.setSize(wrappedBytes.getInt() & 0xFF);
-
-            List<String> data = new ArrayList<>();
-            StringBuilder sb = new StringBuilder();
-            while (wrappedBytes.remaining() > 0) {
-                char character = (char) wrappedBytes.getShort();
-                if (character != 0x00) {
-                    sb.append(character);
-                } else {
-                    data.add(sb.toString());
-                    sb = new StringBuilder();
-                }
+        for (int i = 0; i < fileEntries.length; i++) {
+            if (fileEntries[i].getCompressionTag() == 0) {
+                // get all bytes, do nothing extra. Use fileheaders[i].getRawSize()
+            } else {
+                // get usual compression header
             }
-            // NEXT: do string decoding properly AND catch up of licensing for PKWARE DCL Java library
-            fileNames.setData((String[]) data.toArray());
-
-            pointer += filenameDirectory.getRawSize(); // add check to ensure decomp'd array equals this
         }
+        System.out.println("Unknown: " + archive.getInt());
     }
 
-    static String getString(byte[] archive, int to) {
+    static String getString(ByteBuffer archive, int to) {
         StringBuilder sb = new StringBuilder();
         for (int i = pointer; i < to; i++) {
-            sb.append((char) archive[i]);
+            sb.append((char) archive.get());
         }
         pointer = to;
         return sb.toString();
     }
 
-    static String getString(byte[] archive) {
+    static String getString(ByteBuffer archive) {
         StringBuilder sb = new StringBuilder();
-        for (int i = pointer; i < archive.length; i++) {
-            if (archive[i] == COMMENT_TERMINATOR) {
-                System.out.println("Comments end at: " + i);
-                pointer = i + 1;
-                break;
+        boolean hasReachedTerminator = false;
+        while (!hasReachedTerminator) {
+            byte currentByte = archive.get();
+            if (currentByte == COMMENT_TERMINATOR) {
+                hasReachedTerminator = true;
             } else {
-                sb.append((char) archive[i]);
+                sb.append((char) currentByte);
             }
         }
         return sb.toString();
     }
 
-    static float getFloat(byte[] archive) {
-        byte[] floatBytes = Arrays.copyOfRange(archive, pointer, pointer + FLOAT_BYTE_SIZE);
-        ByteBuffer wrappedBytes = ByteBuffer.wrap(floatBytes);
-        wrappedBytes.order(ByteOrder.LITTLE_ENDIAN);
+    static List<String> getNames(ByteBuffer archive) {
+        int compressedSize = archive.getInt();
+        int rawSize = archive.getInt();
+        byte[] checksum = new byte[4];
+        archive.get(checksum, 0, 4);
 
-        pointer += FLOAT_BYTE_SIZE;
+        List<String> names = new ArrayList<>();
+        if (compressedSize == rawSize) {
+            int count = archive.getInt();
+            int size = archive.getInt();
 
-        return wrappedBytes.getFloat();
-    }
+            names = getStrings(archive, count);
+        } else {
+            byte[] compressed = new byte[compressedSize];
+            archive.get(compressed, 0, compressedSize);
+            byte[] decompressedBytes = decompress(compressed);
 
-    static int getUnsignedInt(byte[] archive) {
-        byte[] uIntBytes = Arrays.copyOfRange(archive, pointer, pointer + UNSIGNED_INT_BYTE_SIZE);
-        ByteBuffer wrappedBytes = ByteBuffer.wrap(uIntBytes);
-        wrappedBytes.order(ByteOrder.LITTLE_ENDIAN);
+            // check decompressed data is accurate
 
-        pointer += UNSIGNED_INT_BYTE_SIZE;
+            ByteBuffer decompressed = ByteBuffer.wrap(decompressedBytes);
+            decompressed.order(ByteOrder.LITTLE_ENDIAN);
+            int count = decompressed.getInt();
+            int size = decompressed.getInt();
 
-        return wrappedBytes.getInt() & 0xFF;
-    }
-
-    static long getUnsignedLong(byte[] archive) {
-        byte[] uLongBytes = Arrays.copyOfRange(archive, pointer, pointer + UNSIGNED_LONG_BYTE_SIZE);
-        ByteBuffer wrappedBytes = ByteBuffer.wrap(uLongBytes);
-        wrappedBytes.order(ByteOrder.LITTLE_ENDIAN);
-
-        pointer += UNSIGNED_LONG_BYTE_SIZE;
-
-        return wrappedBytes.getLong() & 0xFFFFFFFF;
-    }
-
-    static int getInt(byte[] archive) {
-        byte[] uIntBytes = Arrays.copyOfRange(archive, pointer, pointer + UNSIGNED_INT_BYTE_SIZE);
-        ByteBuffer wrappedBytes = ByteBuffer.wrap(uIntBytes);
-        wrappedBytes.order(ByteOrder.LITTLE_ENDIAN);
-
-        pointer += UNSIGNED_INT_BYTE_SIZE;
-
-        return wrappedBytes.getInt();
-    }
-
-    static byte[] getBytes(byte[] archive, int to) {
-        int sizeOfArray = to - pointer;
-        byte[] bytes = new byte[sizeOfArray];
-        for (int i = 0; i < sizeOfArray; i++) {
-            bytes[i] = archive[pointer + i];
+            names = getStrings(decompressed, count);
         }
-        pointer += sizeOfArray;
-        return bytes;
+        return names;
     }
 
     static byte[] decompress(byte[] compressedData) {
@@ -206,5 +144,23 @@ public class H2oUtility
         } catch (IOException e) {
             return new byte[1];
         }
+    }
+
+    static List<String> getStrings(ByteBuffer buffer, int count) {
+        List<String> strings = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            StringBuilder sb = new StringBuilder();
+            boolean isDelimiter = false;
+            while (!isDelimiter) {
+                char character = (char) buffer.getShort();
+                if (character == STRING_ARRAY_DELIMITER) {
+                    strings.add(sb.toString());
+                    isDelimiter = true;
+                } else {
+                    sb.append(character);
+                }
+            }
+        }
+        return strings;
     }
 }
