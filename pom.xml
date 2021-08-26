@@ -24,6 +24,11 @@
       <version>1.18.20</version>
     </dependency>
     <dependency>
+      <groupId>com.github.gcms</groupId>
+      <artifactId>dbc-reader</artifactId>
+      <version>0.2.0</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.11</version>
