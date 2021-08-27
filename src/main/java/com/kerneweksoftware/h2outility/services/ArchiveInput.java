@@ -202,6 +202,10 @@ public class ArchiveInput {
     private ArchivedData buildArchivedData(ArchivedFolder[] folders, ArchivedFile[] files) {
         List<ArchivedFile> topLevelFiles = new ArrayList<>();
         for (ArchivedFile file : files) {
+            if (file.getContents() == null) {
+                continue;
+            }
+
             int folderIndex = file.getFolderIndex();
             if (folderIndex == -1) {
                 topLevelFiles.add(file);
