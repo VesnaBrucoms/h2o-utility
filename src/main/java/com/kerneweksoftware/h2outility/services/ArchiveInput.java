@@ -79,7 +79,7 @@ public class ArchiveInput {
         header.setFileCount(archive.getInt());
         header.setCompressedSize(archive.getLong() & UNSIGNED_LONG_MASK);
         header.setRawSize(archive.getLong() & UNSIGNED_LONG_MASK);
-        if (header.getHeader() != "LIQDLH20") {
+        if (header.getHeader() != "LIQDLH2O") {
             System.out.println("WRONG FILE TYPE");
         }
         return header;
