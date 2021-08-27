@@ -18,6 +18,4 @@ public class FileEntry {
     private long offset;
     private byte[] checksum;
     private int unknownField;
-    private String name;
-    private byte[] data;
 }
