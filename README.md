@@ -8,7 +8,7 @@ More information on the structure of the H2O file format can be found in the doc
 ## Credits
 
 I would not have been able to get as far as I have, and as quickly, without the work that has already gone into
-understanding Liquid Entertainment's H2O file format:
+understanding Liquid Entertainment's H2O file format by other who came before me:
 * [H2O File Format](https://battlerealms.fandom.com/wiki/H2O_File_Format)
 * [Lord Of The Rings: War Of The Ring H2O](http://wiki.xentax.com/index.php/Lord_Of_The_Rings:_War_Of_The_Ring_H2O)
 
