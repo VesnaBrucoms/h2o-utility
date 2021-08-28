@@ -8,7 +8,7 @@ import lombok.Data;
  * First of six structures. Details the number of archived files, the archive's raw size in bytes, and the archive's
  * compressed size in bytes, amongst other fields. The header contains (read in this order):
  * 
- * <p><b>header</b> - Magic number. Always LIQDLH20.</p>
+ * <p><b>magicNumber</b> - Format identifier. Always LIQDLH20.</p>
  * <p><b>version1</b> - Float representation of format version. Always 6.0.</p>
  * <p><b>comments</b> - User comments.</p>
  * <p><b>version2</b> - Int representation of format version. Always 6.</p>
@@ -18,7 +18,7 @@ import lombok.Data;
  */
 @Data
 public class ArchiveHeader {
-    private String header;
+    private String magicNumber;
     private float version1;
     private String comments;
     private int version2;

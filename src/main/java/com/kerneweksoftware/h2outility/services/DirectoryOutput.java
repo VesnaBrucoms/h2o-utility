@@ -18,6 +18,11 @@ public class DirectoryOutput {
         this.archive = archive;
     }
 
+    /**
+     * Writes the folders and files in instance's {@link ArchivedData}.
+     * 
+     * @throws IOException When an issue is encountered when writing the files.
+     */
     public void write() throws IOException {
         File parentDirectory = new File(archive.getName());
         if (!parentDirectory.exists()) {

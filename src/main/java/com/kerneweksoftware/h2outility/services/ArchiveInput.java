@@ -50,6 +50,11 @@ public class ArchiveInput {
         this.archive = buffer;
     }
 
+    /**
+     * Reads the contents of the given archive.
+     * 
+     * @return {@link ArchivedData} containing the folders and files of the archive.
+     */
     public ArchivedData readContents() {
         FileEntry[] fileEntries = processTopLevelInfo();
 
@@ -72,14 +77,14 @@ public class ArchiveInput {
 
     private ArchiveHeader readHeader() {
         ArchiveHeader header = new ArchiveHeader();
-        header.setHeader(getString(archive, archive.position() + 8));
+        header.setMagicNumber(getString(archive, archive.position() + 8));
         header.setVersion1(archive.getFloat());
         header.setComments(getString(archive));
         header.setVersion2(archive.getInt() & UNSIGNED_INT_MASK);
         header.setFileCount(archive.getInt());
         header.setCompressedSize(archive.getLong() & UNSIGNED_LONG_MASK);
         header.setRawSize(archive.getLong() & UNSIGNED_LONG_MASK);
-        if (header.getHeader() != "LIQDLH2O") {
+        if (header.getMagicNumber() != "LIQDLH2O") {
             System.out.println("WRONG FILE TYPE");
         }
         return header;
