@@ -84,14 +84,14 @@ public class ArchiveInput {
 
     private ArchiveHeader readHeader() throws IncorrectFileTypeException {
         ArchiveHeader header = new ArchiveHeader();
-        header.setMagicNumber(getString(archive, archive.position() + 8));
+        header.setMagicNumber(getString(archive.position() + 8));
         if (!header.getMagicNumber().equals(MAGIC_NUMBER)) {
             String msg = String.format("File type found is %s, but should be %s", header.getMagicNumber(), MAGIC_NUMBER);
             logger.error(msg);
             throw new IncorrectFileTypeException(msg);
         }
         header.setVersion1(archive.getFloat());
-        header.setComments(getString(archive));
+        header.setComments(getString());
         header.setVersion2(archive.getInt() & UNSIGNED_INT_MASK);
         header.setFileCount(archive.getInt());
         header.setCompressedSize(archive.getLong() & UNSIGNED_LONG_MASK);
@@ -235,7 +235,7 @@ public class ArchiveInput {
         return data;
     }
 
-    static String getString(ByteBuffer archive, int to) {
+    private String getString(int to) {
         StringBuilder sb = new StringBuilder();
         for (int i = archive.position(); i < to; i++) {
             sb.append((char) archive.get());
@@ -243,7 +243,7 @@ public class ArchiveInput {
         return sb.toString();
     }
 
-    static String getString(ByteBuffer archive) {
+    private String getString() {
         StringBuilder sb = new StringBuilder();
         boolean hasReachedTerminator = false;
         while (!hasReachedTerminator) {
@@ -257,19 +257,7 @@ public class ArchiveInput {
         return sb.toString();
     }
 
-    static byte[] decompress(byte[] compressedData) {
-        try {
-            ByteArrayInputStream compressedStream = new ByteArrayInputStream(compressedData);
-            BlastInputStream blastStream = new BlastInputStream(compressedStream);
-            byte[] result = blastStream.readAllBytes();
-            blastStream.close();
-            return result;
-        } catch (IOException e) {
-            return new byte[1];
-        }
-    }
-
-    static List<String> getStrings(ByteBuffer buffer, int count) {
+    private List<String> getStrings(ByteBuffer buffer, int count) {
         List<String> strings = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             StringBuilder sb = new StringBuilder();
@@ -285,5 +273,17 @@ public class ArchiveInput {
             }
         }
         return strings;
+    }
+
+    private byte[] decompress(byte[] compressedData) {
+        try {
+            ByteArrayInputStream compressedStream = new ByteArrayInputStream(compressedData);
+            BlastInputStream blastStream = new BlastInputStream(compressedStream);
+            byte[] result = blastStream.readAllBytes();
+            blastStream.close();
+            return result;
+        } catch (IOException e) {
+            return new byte[1];
+        }
     }
 }
