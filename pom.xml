@@ -6,7 +6,7 @@
 
   <groupId>com.kerneweksoftware.h2outility</groupId>
   <artifactId>h2outility</artifactId>
-  <version>0.0.1</version>
+  <version>0.9.0</version>
 
   <name>h2outility</name>
   <!-- <url>http://www.example.com</url> -->
@@ -18,6 +18,16 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.32</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.32</version>
+    </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.github.gcms.blast.BlastInputStream;
+import com.kerneweksoftware.h2outility.exceptions.IncorrectFileTypeException;
 import com.kerneweksoftware.h2outility.models.ArchiveHeader;
 import com.kerneweksoftware.h2outility.models.ArchivedData;
 import com.kerneweksoftware.h2outility.models.ArchivedFile;
@@ -15,17 +16,22 @@ import com.kerneweksoftware.h2outility.models.ArchivedFolder;
 import com.kerneweksoftware.h2outility.models.CompressedDataHeader;
 import com.kerneweksoftware.h2outility.models.FileEntry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Handles reading of a H2O archive from a ByteBuffer.
  */
 public class ArchiveInput {
 
-    static final int UNSIGNED_INT_MASK = 0xFF;
-    static final int UNSIGNED_LONG_MASK = 0xFFFFFFFF;
-    static final int COMMENT_TERMINATOR = 0x1A;
-    static final int STRING_ARRAY_DELIMITER = 0x00;
+    private static final int UNSIGNED_INT_MASK = 0xFF;
+    private static final int UNSIGNED_LONG_MASK = 0xFFFFFFFF;
+    private static final int COMMENT_TERMINATOR = 0x1A;
+    private static final int STRING_ARRAY_DELIMITER = 0x00;
+    private static final String MAGIC_NUMBER = "LIQDLH2O";
 
     private final ByteBuffer archive;
+    private final Logger logger = LoggerFactory.getLogger(ArchiveInput.class);
     
     /**
      * Instantiate new ArchiveInput from ByteBuffer.
@@ -54,8 +60,9 @@ public class ArchiveInput {
      * Reads the contents of the given archive.
      * 
      * @return {@link ArchivedData} containing the folders and files of the archive.
+     * @throws IncorrectFileTypeException When the archive is not of the H2O format.
      */
-    public ArchivedData readContents() {
+    public ArchivedData readContents() throws IncorrectFileTypeException {
         FileEntry[] fileEntries = processTopLevelInfo();
 
         List<String> folderNames = getNames();
@@ -70,23 +77,25 @@ public class ArchiveInput {
         return buildArchivedData(folders, files);
     }
 
-    private FileEntry[] processTopLevelInfo() {
+    private FileEntry[] processTopLevelInfo() throws IncorrectFileTypeException {
         ArchiveHeader header = readHeader();
         return readFileEntries(header.getFileCount());
     }
 
-    private ArchiveHeader readHeader() {
+    private ArchiveHeader readHeader() throws IncorrectFileTypeException {
         ArchiveHeader header = new ArchiveHeader();
         header.setMagicNumber(getString(archive, archive.position() + 8));
+        if (!header.getMagicNumber().equals(MAGIC_NUMBER)) {
+            String msg = String.format("File type found is %s, but should be %s", header.getMagicNumber(), MAGIC_NUMBER);
+            logger.error(msg);
+            throw new IncorrectFileTypeException(msg);
+        }
         header.setVersion1(archive.getFloat());
         header.setComments(getString(archive));
         header.setVersion2(archive.getInt() & UNSIGNED_INT_MASK);
         header.setFileCount(archive.getInt());
         header.setCompressedSize(archive.getLong() & UNSIGNED_LONG_MASK);
         header.setRawSize(archive.getLong() & UNSIGNED_LONG_MASK);
-        if (header.getMagicNumber() != "LIQDLH2O") {
-            System.out.println("WRONG FILE TYPE");
-        }
         return header;
     }
 
@@ -161,6 +170,7 @@ public class ArchiveInput {
                 newFile.setName(fileNames.get(fileNameIndex));
             } else {
                 newFile.setName("UNUSED");
+                logger.info("File with ID {} is unused, setting name to UNUSED", newFile.getId());
             }
             newFile.setFolderIndex(fileEntries[i].getFolderNameIndex());
             files[i] = newFile;
@@ -198,7 +208,7 @@ public class ArchiveInput {
                         files[i].setContents(decompressedBytes);
                     }
                 } else {
-                    System.out.println("Unused file");
+                    logger.info("File with ID {} is unused, so no data to read", files[i].getId());
                 }
             }
         }
