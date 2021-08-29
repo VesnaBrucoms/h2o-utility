@@ -39,6 +39,7 @@ public class ArchiveInputTest {
 
         assertEquals(0, producedData.getFolders().length);
         assertEquals(3, producedData.getTopLevelFiles().size());
+        assertEquals(0, producedData.getUnusedFiles().size());
     }
 
     @Test
@@ -53,6 +54,7 @@ public class ArchiveInputTest {
 
         assertEquals(0, producedData.getFolders().length);
         assertEquals(2, producedData.getTopLevelFiles().size());
+        assertEquals(1, producedData.getUnusedFiles().size());
     }
 
     @Test
@@ -73,6 +75,7 @@ public class ArchiveInputTest {
         assertEquals(1, producedData.getFolders()[1].getFiles().size());
         assertEquals(1, producedData.getFolders()[2].getFiles().size());
         assertEquals(0, producedData.getTopLevelFiles().size());
+        assertEquals(0, producedData.getUnusedFiles().size());
     }
 
     @Test
@@ -93,6 +96,7 @@ public class ArchiveInputTest {
         assertEquals(1, producedData.getFolders()[1].getFiles().size());
         assertEquals(1, producedData.getFolders()[2].getFiles().size());
         assertEquals(0, producedData.getTopLevelFiles().size());
+        assertEquals(1, producedData.getUnusedFiles().size());
     }
     
     @Test
