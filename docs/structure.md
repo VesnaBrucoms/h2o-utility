@@ -64,11 +64,11 @@ If 'compressedSize' and 'rawSize' are the same, then the data is not compressed.
 
 Either way, the data is structured the same:
 
-| Type              | Bytes | Name  | Description                                                                              |
-| ----------------- | ----- | ----- | ---------------------------------------------------------------------------------------- |
-| int32             | 4     | count | Number of names in the array                                                             |
-| int32             | 4     | size  | Size of the data in bytes. Includes `count` and itself, so will always be a minimum of 8 |
-| String (Unicode)  | x     | names | Array of strings deliminated by `0x00`. Each character is 2 bytes                        |
+| Type                          | Bytes | Name  | Description                                                                              |
+| ----------------------------- | ----- | ----- | ---------------------------------------------------------------------------------------- |
+| int32                         | 4     | count | Number of names in the array                                                             |
+| int32                         | 4     | size  | Size of the data in bytes. Includes `count` and itself, so will always be a minimum of 8 |
+| String (UTF-16 little endian) | x     | names | Array of strings deliminated by `0x00`. Each character is 2 bytes                        |
 
 If no folders have been archived, then this section can be empty.
 

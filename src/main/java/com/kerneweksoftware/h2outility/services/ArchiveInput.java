@@ -86,7 +86,7 @@ public class ArchiveInput {
         ArchiveHeader header = new ArchiveHeader();
         header.setMagicNumber(getString(archive.position() + 8));
         if (!header.getMagicNumber().equals(MAGIC_NUMBER)) {
-            String msg = String.format("File type found is %s, but should be %s", header.getMagicNumber(), MAGIC_NUMBER);
+            String msg = String.format("File type found is %s, should be %s", header.getMagicNumber(), MAGIC_NUMBER);
             logger.error(msg);
             throw new IncorrectFileTypeException(msg);
         }
@@ -214,7 +214,7 @@ public class ArchiveInput {
         }
     }
 
-    private ArchivedData buildArchivedData(ArchivedFolder[] folders, ArchivedFile[] files) {
+    protected ArchivedData buildArchivedData(ArchivedFolder[] folders, ArchivedFile[] files) {
         List<ArchivedFile> topLevelFiles = new ArrayList<>();
         for (ArchivedFile file : files) {
             if (file.getContents() == null) {
@@ -257,7 +257,7 @@ public class ArchiveInput {
         return sb.toString();
     }
 
-    private List<String> getStrings(ByteBuffer buffer, int count) {
+    protected List<String> getStrings(ByteBuffer buffer, int count) {
         List<String> strings = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             StringBuilder sb = new StringBuilder();
