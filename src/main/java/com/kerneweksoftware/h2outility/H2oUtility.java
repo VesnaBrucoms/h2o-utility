@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.zip.DataFormatException;
 
+import com.kerneweksoftware.h2outility.exceptions.DecompressionException;
 import com.kerneweksoftware.h2outility.exceptions.IncorrectFileTypeException;
 import com.kerneweksoftware.h2outility.models.unpacked.ArchivedData;
 import com.kerneweksoftware.h2outility.services.ArchiveInput;
@@ -34,6 +35,8 @@ public class H2oUtility
             ArchiveInput archiveInput = new ArchiveInput(archive);
             archiveData = archiveInput.readContents();
         } catch (IncorrectFileTypeException e) {
+            System.out.println(e.getMessage());
+        } catch (DecompressionException e) {
             System.out.println(e.getMessage());
         }
 
