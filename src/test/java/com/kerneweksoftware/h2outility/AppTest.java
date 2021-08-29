@@ -1,4 +1,4 @@
-package com.kerneweksoftware.h2ounpacker;
+package com.kerneweksoftware.h2outility;
 
 import static org.junit.Assert.assertTrue;
 

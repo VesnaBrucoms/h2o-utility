@@ -6,9 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-import com.kerneweksoftware.h2outility.models.ArchivedData;
-import com.kerneweksoftware.h2outility.models.ArchivedFile;
-import com.kerneweksoftware.h2outility.models.ArchivedFolder;
+import com.kerneweksoftware.h2outility.models.unpacked.ArchivedData;
+import com.kerneweksoftware.h2outility.models.unpacked.ArchivedFile;
+import com.kerneweksoftware.h2outility.models.unpacked.ArchivedFolder;
 
 public class DirectoryOutput {
     

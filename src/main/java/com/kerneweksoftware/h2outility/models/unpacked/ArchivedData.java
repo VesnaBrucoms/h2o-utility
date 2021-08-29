@@ -1,4 +1,4 @@
-package com.kerneweksoftware.h2outility.models;
+package com.kerneweksoftware.h2outility.models.unpacked;
 
 import java.util.List;
 

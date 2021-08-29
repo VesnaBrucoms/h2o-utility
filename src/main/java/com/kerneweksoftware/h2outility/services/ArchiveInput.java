@@ -10,11 +10,11 @@ import java.util.List;
 import com.github.gcms.blast.BlastInputStream;
 import com.kerneweksoftware.h2outility.exceptions.IncorrectFileTypeException;
 import com.kerneweksoftware.h2outility.models.ArchiveHeader;
-import com.kerneweksoftware.h2outility.models.ArchivedData;
-import com.kerneweksoftware.h2outility.models.ArchivedFile;
-import com.kerneweksoftware.h2outility.models.ArchivedFolder;
 import com.kerneweksoftware.h2outility.models.CompressedDataHeader;
 import com.kerneweksoftware.h2outility.models.FileEntry;
+import com.kerneweksoftware.h2outility.models.unpacked.ArchivedData;
+import com.kerneweksoftware.h2outility.models.unpacked.ArchivedFile;
+import com.kerneweksoftware.h2outility.models.unpacked.ArchivedFolder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -9,7 +9,7 @@ import java.util.Scanner;
 import java.util.zip.DataFormatException;
 
 import com.kerneweksoftware.h2outility.exceptions.IncorrectFileTypeException;
-import com.kerneweksoftware.h2outility.models.ArchivedData;
+import com.kerneweksoftware.h2outility.models.unpacked.ArchivedData;
 import com.kerneweksoftware.h2outility.services.ArchiveInput;
 import com.kerneweksoftware.h2outility.services.DirectoryOutput;
 
