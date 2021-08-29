@@ -244,22 +244,24 @@ public class ArchiveInput {
 
     protected ArchivedData buildArchivedData(ArchivedFolder[] folders, ArchivedFile[] files) {
         List<ArchivedFile> topLevelFiles = new ArrayList<>();
+        List<ArchivedFile> unusedFiles = new ArrayList<>();
         for (ArchivedFile file : files) {
             if (file.getContents() == null) {
-                continue;
-            }
-
-            int folderIndex = file.getFolderIndex();
-            if (folderIndex == -1) {
-                topLevelFiles.add(file);
+                unusedFiles.add(file);
             } else {
-                folders[folderIndex].getFiles().add(file);
+                int folderIndex = file.getFolderIndex();
+                if (folderIndex == -1) {
+                    topLevelFiles.add(file);
+                } else {
+                    folders[folderIndex].getFiles().add(file);
+                }
             }
         }
 
         ArchivedData data = new ArchivedData();
         data.setFolders(folders);
         data.setTopLevelFiles(topLevelFiles);
+        data.setUnusedFiles(unusedFiles);
         return data;
     }
 
