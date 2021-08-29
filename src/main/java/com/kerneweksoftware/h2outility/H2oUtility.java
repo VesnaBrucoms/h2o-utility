@@ -30,20 +30,18 @@ public class H2oUtility
 
         ByteBuffer archive = readArchive(archivePath);
 
-        ArchivedData archiveData = null;
         try {
             ArchiveInput archiveInput = new ArchiveInput(archive);
-            archiveData = archiveInput.readContents();
+            ArchivedData archiveData = archiveInput.readContents();
+
+            archiveData.setName(archiveName.replace(".H2O", ""));
+            DirectoryOutput output = new DirectoryOutput(archiveData);
+            output.write();
         } catch (IncorrectFileTypeException e) {
             System.out.println(e.getMessage());
         } catch (DecompressionException e) {
             System.out.println(e.getMessage());
         }
-
-        archiveData.setName(archiveName.replace(".H2O", ""));
-
-        DirectoryOutput output = new DirectoryOutput(archiveData);
-        output.write();
     }
 
     protected static String getUserInput() {

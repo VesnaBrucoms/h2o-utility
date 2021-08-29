@@ -122,7 +122,7 @@ public class ArchiveInput {
         return fileEntries;
     }
 
-    private List<String> getNames() throws DecompressionException {
+    protected List<String> getNames() throws DecompressionException {
         CompressedDataHeader header = new CompressedDataHeader();
         header.setCompressedSize(archive.getInt());
         header.setRawSize(archive.getInt());
@@ -142,7 +142,7 @@ public class ArchiveInput {
 
                 if (decompressedBytes.length != header.getRawSize()) {
                     String msg = String.format(
-                        "Decompressed data byte length {}, but header raw size is {}",
+                        "Decompressed data byte length %s, but header raw size is %s",
                         decompressedBytes.length,
                         header.getRawSize()
                     );
@@ -157,7 +157,7 @@ public class ArchiveInput {
 
                 names = getStrings(decompressed, count);
             } catch (IOException e) {
-                String msg = String.format("Name data failed to decompress with reason {}", e.getMessage());
+                String msg = String.format("Name data failed to decompress with reason %s", e.getMessage());
                 logger.error(msg);
                 throw new DecompressionException(msg);
             }
@@ -211,23 +211,23 @@ public class ArchiveInput {
                 files[i].setContents(data);
             } else {
                 if (fileEntries[i].getOffset() != 0) {
-                    CompressedDataHeader comp = new CompressedDataHeader();
-                    comp.setCompressedSize(archive.getInt());
-                    comp.setRawSize(archive.getInt());
-                    comp.setChecksum(archive.getInt());
+                    CompressedDataHeader header = new CompressedDataHeader();
+                    header.setCompressedSize(archive.getInt());
+                    header.setRawSize(archive.getInt());
+                    header.setChecksum(archive.getInt());
 
-                    byte[] compressedData = new byte[comp.getCompressedSize()];
-                    archive.get(compressedData, 0, comp.getCompressedSize());
+                    byte[] compressedData = new byte[header.getCompressedSize()];
+                    archive.get(compressedData, 0, header.getCompressedSize());
                     try {
                         byte[] decompressedBytes = decompress(compressedData);
-                        if (decompressedBytes.length == comp.getRawSize()) {
+                        if (decompressedBytes.length == header.getRawSize()) {
                             files[i].setContents(decompressedBytes);
                         } else {
                             logger.error(
                                 "Data for file {} possibly failed to decompress. Decompressed byte length is {}, but header raw size is {}",
                                 fileEntries[i].getFileId(),
                                 decompressedBytes.length,
-                                comp.getRawSize()
+                                header.getRawSize()
                             );
                             continue;
                         }
@@ -305,7 +305,7 @@ public class ArchiveInput {
         return strings;
     }
 
-    private byte[] decompress(byte[] compressedData) throws IOException {
+    protected byte[] decompress(byte[] compressedData) throws IOException {
         ByteArrayInputStream compressedStream = new ByteArrayInputStream(compressedData);
         BlastInputStream blastStream = new BlastInputStream(compressedStream);
         try {
